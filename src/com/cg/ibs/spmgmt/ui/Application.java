@@ -86,7 +86,7 @@ public class Application {
 		} catch (Exception exception) {
 			System.out.println(exception.getMessage());
 		}
-		System.out.println("Note Down the ID & Password for future logins:");
+		System.out.println("Note Down the ID & Password for future reference:");
 		System.out.println("User ID:" + serviceProvider.getUserId());
 		System.out.println("Password: " + serviceProvider.getPassword());
 		// Take Details with basic pattern matching

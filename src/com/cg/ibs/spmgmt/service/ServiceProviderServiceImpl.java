@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import com.cg.ibs.spmgmt.bean.ServiceProvider;
 import com.cg.ibs.spmgmt.dao.ServiceProviderDao;
 import com.cg.ibs.spmgmt.dao.ServiceProviderDaoImpl;
+import com.cg.ibs.spmgmt.exception.IBSException;
 import com.cg.ibs.spmgmt.exception.*;
 
 public class ServiceProviderServiceImpl implements ServiceProviderService, IBSPortal{
@@ -26,11 +27,8 @@ public class ServiceProviderServiceImpl implements ServiceProviderService, IBSPo
 			userId = temp.substring(0, count);
 			b = serviceProviderDao.checkUserID(userId);
 			count++;
-		} while (b==false && count <= length);
-		
-		if(count==length){
-			throw new RegisterException(IBSExceptionInterface.ALREADY_EXISTS_MESSAGE);
-		}
+		} while (b != true && count < length);
+
 		String passwordSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "0123456789" + "abcdefghijklmnopqrstuvxyz"
 				+ "!@#$%^&*_=+-/.?<>)";
 		StringBuilder password = new StringBuilder(8);
@@ -93,7 +91,7 @@ public class ServiceProviderServiceImpl implements ServiceProviderService, IBSPo
 			generateSpi(sp);
 			sp.setSpi(spi);}
 		else if (decision == false) {
-			sp.setStatus("Rejected");
+			sp.setStatus("Disapproved");
 		}
 		serviceProviderDao.approveStatus(sp);
 	}
@@ -124,5 +122,13 @@ public class ServiceProviderServiceImpl implements ServiceProviderService, IBSPo
 		ArrayList<ServiceProvider> approvedList= serviceProviderDao.fetchApprovedSp();
 		Collections.sort( approvedList, (serviceProvider1, serviceProvider2) ->serviceProvider1.getRequestDate().compareTo(serviceProvider2.getRequestDate()));
 		return approvedList;
+	}
+
+	@Override
+	public ArrayList<ServiceProvider> showHistory() {
+		ArrayList<ServiceProvider> historyMap = serviceProviderDao.fetchHistory();
+		Collections.sort( historyMap, (serviceProvider1, serviceProvider2) ->
+		  serviceProvider1.getRequestDate().compareTo(serviceProvider2.getRequestDate()));
+		return historyMap;
 	}
 }

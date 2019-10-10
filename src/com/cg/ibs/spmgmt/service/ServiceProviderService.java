@@ -16,6 +16,8 @@ public interface ServiceProviderService {
 	ServiceProvider getServiceProvider(String userid) throws IBSException;
 
 	ArrayList<ServiceProvider> showPending();
+	
+	ArrayList<ServiceProvider> showHistory();
 
 	void approveSP(ServiceProvider sp, boolean decision) throws IBSException;
 

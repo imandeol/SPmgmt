@@ -43,8 +43,10 @@ public class Application {
 				application.bankAdmin(scanner, admin, service);
 				// Getting the list of pending Service Providers in Database
 				ArrayList<ServiceProvider> serviceProviders = service.showPending();
+				// Getting the Request History from database
+				ArrayList<ServiceProvider> serviceProviders2 = service.showHistory();
 				// Showing Details-->Setting Approval status
-                application.bankMethod(serviceProviders, service, scanner);
+                application.bankMethod(serviceProviders,serviceProviders2, service, scanner);
 				break;
 			case 4:
 				// Exit from Application
@@ -86,7 +88,7 @@ public class Application {
 		} catch (Exception exception) {
 			System.out.println(exception.getMessage());
 		}
-		System.out.println("Note Down the ID & Password for Future Reference:");
+		System.out.println("Note Down the ID & Password for future logins:");
 		System.out.println("User ID:" + serviceProvider.getUserId());
 		System.out.println("Password: " + serviceProvider.getPassword());
 		// Take Details with basic pattern matching
@@ -119,7 +121,7 @@ public class Application {
 	private ServiceProvider getKYC(Scanner scanner, ServiceProvider serviceProvider) {
 		boolean bn = false;
 		String st = "";
-		String gstinPattern = "[1-9]{2}[A-Z]{5}[0-9]{4}[A-Z][0-9][A-Z][0-9,A-Z]";
+		String gstinPattern = "[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][0-9][A-Z][0-9,A-Z]";
 		String panPattern = "[A-Z]{5}[0-9]{4}[A-Z]";
 		String acNumberPattern = "[1-9][0-9]{9,14}";
 		String phoneNumberPattern = "[1-9][0-9]{9}";
@@ -206,71 +208,102 @@ public class Application {
 	}
 
 	// Shows all Pending Service Providers and allows to approve/disapprove
-	private void bankMethod( ArrayList<ServiceProvider> serviceProviders,
-			ServiceProviderService service, Scanner scanner) {
+	private void bankMethod( ArrayList<ServiceProvider> serviceProviders,ArrayList<ServiceProvider> serviceProviders2,ServiceProviderService service, Scanner scanner) {
 		int index=1;
 		boolean exitTrigger2 = true;
-		do {
-			if (serviceProviders.isEmpty()) {
-				System.out.println("*******No pending accounts*********" + "\n RETURNING TO MAIN MENU! \n");
-				break;
-			}
-			System.out.println("List of Pending Accounts: ");
-			System.out.println("Select an Account from the list below");
-			DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-			for (ServiceProvider serviceProvider: serviceProviders) {
-				ServiceProvider value = serviceProviders.get((index-1));
-				System.out.println(
-						index + ". " + value.getNameOfCompany() + "\t Request Date and Time: " + serviceProvider.getRequestDate().format(format));
-				index++;
-			}
-			
-			while (!scanner.hasNextInt()) {
-				System.out.println("Enter a digit!");
-				scanner.next();
-				scanner.nextLine();
-			}
-			int k = scanner.nextInt();
-			
-			while(k>serviceProviders.size()){
-				System.out.println("Invalid input. Choose the correct number from menu to display company details!");
+		System.out.println(" Press 1 for pending List  Press 2 to view Request History  ");
+		while (!scanner.hasNextInt()) {
+			scanner.next();
+			scanner.nextLine();
+			System.out.println("Invalid Input! Please Enter a Number");
+		}
+		switch (scanner.nextInt()) {
+		case 1:
+			do {System.out.println("Start list"+serviceProviders.toString());
+				if (serviceProviders.isEmpty()) {
+					System.out.println("*******No pending accounts*********" + "\n RETURNING TO MAIN MENU! \n");
+					break;
+				}
+				System.out.println("List of Pending Accounts: ");
+				System.out.println("Select an Account from the list below");
+				DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+				for (ServiceProvider serviceProvider: serviceProviders) {
+					ServiceProvider value = serviceProviders.get((index-1));
+					System.out.println(
+							index + ". " + value.getNameOfCompany() + "\t Request Date and Time: " + serviceProvider.getRequestDate().format(format));
+					index++;
+				}
+				
 				while (!scanner.hasNextInt()) {
 					System.out.println("Enter a digit!");
 					scanner.next();
 					scanner.nextLine();
 				}
-				k=scanner.nextInt();
-			}
-			scanner.nextLine();
-			// Show selected Service Providers details
-			for (index=0;index<= serviceProviders.size(); index++ ) {
-				if ((index+1)==k) {
-					ServiceProvider value = serviceProviders.get(index);
-					printDetails(value);
-					System.out.println("Enter true to Approve, false to Disapprove");
-					try {
-						while (!scanner.hasNextBoolean()) {
-							System.out.println("Enter true or false!");
-							scanner.next();
-							scanner.nextLine();
-						}
-						service.approveSP(value, scanner.nextBoolean());
+				int k = scanner.nextInt();
+				
+				while(k>serviceProviders.size()){
+					System.out.println("Invalid input. Choose the correct number from menu to display company details!");
+					while (!scanner.hasNextInt()) {
+						System.out.println("Enter a digit!");
+						scanner.next();
 						scanner.nextLine();
-					} catch (IBSException exception) {
-						System.out.println(exception.getMessage());
 					}
-					serviceProviders.remove((index));
-					break;
+					k=scanner.nextInt();
 				}
+				scanner.nextLine();
+				// Show selected Service Providers details
+				for (index=0;index<= serviceProviders.size(); index++ ) {
+					if ((index+1)==k) {
+						ServiceProvider value = serviceProviders.get(index);
+						printDetails(value);
+						System.out.println("Enter true to Approve, false to Disapprove");
+						try {
+							while (!scanner.hasNextBoolean()) {
+								System.out.println("Enter true or false!");
+								scanner.next();
+								scanner.nextLine();
+							}
+							service.approveSP(value, scanner.nextBoolean());
+							scanner.nextLine();
+						} catch (IBSException exception) {
+							System.out.println(exception.getMessage());
+						}
+						serviceProviders.remove((index));
+						break;
+					}
+				}
+				System.out.println(
+						"Press 1 to see remaining pending accounts \nPress any other number to go back to Main Menu");
+				if (scanner.nextInt() == 1) {
+					exitTrigger2 = false;
+				}
+				scanner.nextLine();
+			} while (!exitTrigger2);
+			
+			break;
+
+		case 2:
+			int indx =0;
+			DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+			if (serviceProviders2.isEmpty()) {
+				System.out.println("*******No history Found*********" + "\n RETURNING TO MAIN MENU! \n");
+				break;
 			}
-			System.out.println(
-					"Press 1 to see remaining pending accounts \nPress any other number to go back to Main Menu");
-			if (scanner.nextInt() == 1) {
-				exitTrigger2 = false;
+			else
+			{
+			for (ServiceProvider serviceProvider: serviceProviders2 ){
+				ServiceProvider value = serviceProviders2.get(indx);
+				System.out.println(index + ". " + value.getNameOfCompany() +"\t Status "+ serviceProvider.getStatus() + "\t Request Date and Time: " + serviceProvider.getRequestDate().format(format));
+				index++;
 			}
-			scanner.nextLine();
-		} while (!exitTrigger2);
-	}
+			}
+			break;
+		default:
+			System.out.println("Invalid Input");
+			break;
+		}
+		}
+		
 
 	// Taking 1 as input
 	private void returnToMainMenu(Scanner scanner) {

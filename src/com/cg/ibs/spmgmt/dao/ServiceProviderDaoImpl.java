@@ -22,6 +22,8 @@ public class ServiceProviderDaoImpl implements ServiceProviderDao {
 	private static Map<String, BankAdmin> bankMap = new HashMap<>();
 	private static ArrayList<ServiceProvider> pendingList = new ArrayList<>();
 	private static ArrayList<ServiceProvider> approvedList = new ArrayList<ServiceProvider>();
+	private static ArrayList<ServiceProvider> historyList = new ArrayList<ServiceProvider>();
+	
 	{
 		bankMap.put(admin1.getAdminID(), admin1);
 		bankMap.put(admin2.getAdminID(), admin2);
@@ -119,5 +121,19 @@ public class ServiceProviderDaoImpl implements ServiceProviderDao {
 	@Override
 	public boolean emptyData() {
 		return spMap.isEmpty();
+	}
+
+	@Override
+	public ArrayList<ServiceProvider> fetchHistory() {
+		for (ServiceProvider serviceProvider : spMap.values()) {
+			if (serviceProvider.getStatus().equalsIgnoreCase("Approved")) {
+				historyList.add(serviceProvider);
+			}
+			if (serviceProvider.getStatus().equalsIgnoreCase("Disapproved")) {
+				historyList.add(serviceProvider);
+			}
+		}
+		
+		return historyList;
 	}
 }

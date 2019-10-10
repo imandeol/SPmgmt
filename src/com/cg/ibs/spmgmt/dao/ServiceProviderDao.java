@@ -18,6 +18,8 @@ public interface ServiceProviderDao {
 	boolean checkUserID(String userId);
 
 	ArrayList<ServiceProvider> fetchApprovedSp() ;
+	
+    ArrayList<ServiceProvider> fetchHistory();
 
 	boolean checkAdminLogin(String adminID, String adminPassword) throws IBSException;
 
